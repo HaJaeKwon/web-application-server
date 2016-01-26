@@ -32,6 +32,17 @@ BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 
 ### 요구사항 2 - get 방식으로 회원가입
 * 
+회원가입을 하게되면 create? ~~ 로 클라이언트에서 요청이 오는데 이것을 파싱하여 userId, password, name, email로 분리한다.
+분리하는 과정은 parseQueryString 를 사용하여 한다.
+이 함수에는 
+return Arrays.stream(tokens)
+	.map(t -> getKeyValue(t, "="))
+	.filter(p -> p != null)
+	.collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+부분이 있는데 아마 자바8에서 부터 쓰이는 함수적 표현? 인 것 같다.
+주로 data를 파싱할때, 어떤 stream에서 정보를 빼와 재조합 하는데 쓰이는 방식 같으며 굉장히 편리해보인다.
+
+파싱이 끝나서 Map이 리턴되면 저장된 value값들을 user객체에 옮겨 담고 이것을 List에 add 하면 되겠다.
 
 ### 요구사항 3 - post 방식으로 회원가입
 * 
