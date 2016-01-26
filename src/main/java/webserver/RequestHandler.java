@@ -50,6 +50,7 @@ public class RequestHandler extends Thread {
 			boolean login = false;
 			
 			String line = br.readLine();
+			log.debug("header : {}", line);
 			String[] tokens = line.split(" ");
 			log.debug("tokens[0] : {}", tokens[0]);
 			log.debug("tokens[1] : {}", tokens[1]);
@@ -57,8 +58,9 @@ public class RequestHandler extends Thread {
 				
 				if(line.contains("Length")) content_length = Integer.parseInt(line.split(" ")[1]);
 				
-				log.debug("header : {}", line);
+				
 				line = br.readLine();
+				log.debug("header : {}", line);
 			}
 			
 			String url = getDefaultUrl(tokens);
@@ -87,27 +89,32 @@ public class RequestHandler extends Thread {
 				
 				printUserlist();
 				
-				url = "/index.html";
-				statusCode = "302 Found";
+				response302Header(dos);
+				return;
+				
 			} else if(tokens[0].contains("GET") && url.contains("login?")) {
 				url = url.split("\\?")[1];
-				url = URLDecoder.decode(IOUtils.readData(br, content_length), "UTF-8");
-				
+				log.debug("url login : {}", URLDecoder.decode(url, "UTF-8"));
 				Map<String, String> loginInfo = HttpRequestUtils.parseQueryString(URLDecoder.decode(url, "UTF-8"));
+				log.debug("LoginInfo : {}", loginInfo.get("userId"));
 				User user = DataBase.findUserById(loginInfo.get("userId"));
 				if(user != null) {
 					if(loginInfo.get("password").equals(user.getPassword())) {
 						login = true;
 						log.debug("    [LOGIN]");
+						response302Header_loginSuccess(dos);
+						return;
 					} else log.debug("    [INCORRECT PASSWORD]");
 				}  else log.debug("    [INCORRECT ID]");
-				url = "/index.html";
-				statusCode = "302 Found";
+
+				response302Header_loginfail(dos);
+				return;
 			}
 			
 			body = Files.readAllBytes(new File("./webapp" + url).toPath());
-			responseHeader(dos, statusCode, body.length);
+			response200Header(dos, body.length);
 			responseBody(dos, body);
+			
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
@@ -115,9 +122,9 @@ public class RequestHandler extends Thread {
 	}
 
 	private void printUserlist() {
-		Map<String, User> List = DataBase.findAll();
+		//Map<String, User> List = DataBase.findAll();
 		for(int i=0; i<DataBase.findAll().size(); i++) {
-			log.debug("[UserList] userId : {}, password : {}, name : {}, email : {}", DataBase.findAll()., userList.get(i).getPassword(), userList.get(i).getName(), userList.get(i).getEmail());
+			log.debug("[UserList] userId : {}, password : {}, name : {}, email : {}", userList.get(i).getUserId(), userList.get(i).getPassword(), userList.get(i).getName(), userList.get(i).getEmail());
 		}
 	}
 
@@ -137,9 +144,38 @@ public class RequestHandler extends Thread {
 	private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
 		try {
 			dos.writeBytes("HTTP/1.1 200 OK \r\n");
-			dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+			dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
 			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
 			dos.writeBytes("\r\n");
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	private void response302Header(DataOutputStream dos) {
+		try {
+			dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+			dos.writeBytes("Location: /index.html \r\n");
+			dos.flush();
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	private void response302Header_loginSuccess(DataOutputStream dos) {
+		try {
+			dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+			dos.writeBytes("Location: /index.html \r\n");
+			dos.writeBytes("Set-Cookie: logined=true \r\n");
+			dos.flush();
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	private void response302Header_loginfail(DataOutputStream dos) {
+		try {
+			dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+			dos.writeBytes("Location: /login.html \r\n");
+			dos.writeBytes("Set-Cookie: logined=false \r\n");
+			dos.flush();
 		} catch (IOException e) {
 			log.error(e.getMessage());
 		}
