@@ -17,6 +17,19 @@
 ### 요구사항 1 - http://localhost:8080/index.html로 접속시 응답
 * 
 
+클라이언트의 요청에 대한 사항은 (어디로 접근할지가 오겟지.) InputStream in 에 모두 담겨있다.
+여기 담긴 정보를 파싱하는 것이 필요하다.
+
+BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+			String line = br.readLine(); // 한줄씩읽는다. 필요하다면 반복문을 통해 계속 읽는다.
+			String[] tokens = line.split(" ");
+			
+여기서 tokens에 담긴 정보들중 /index.html 을 url에 옮겨 담는다.
+      url = tokens[1];
+      body = Files.readAllBytes(new File("./webapp" + url).toPath());
+      				
+그리고 이 body를 DataOutputStream dos 에 담아 flush로 보내면 된다.
+
 ### 요구사항 2 - get 방식으로 회원가입
 * 
 
