@@ -46,6 +46,12 @@ return Arrays.stream(tokens)
 
 ### 요구사항 3 - post 방식으로 회원가입
 * 
+GET 과의 가장 큰 차이점은 회원가입한 정보가 hader가 아니라 body에 온다는 것이다.
+처음에 해맸던 이유는 br.readline이 빈줄을 읽지 못하기 때문에
+br로 header끝까지 읽고 그 다음 br로 한 줄 더 읽으면 body 부분을 읽을 것이라고 생각했기 때문이다.
+하지만 이렇게는 읽지 못했고 content-length를 정확히 읽어서 그 다음부분에서 그 만큼만 정확히 읽는 방법이 필요했다.
+(여기서는 IOUtils의 readData를 사용했다.)
+가입 정보를 읽은 순간부터는 GET방식과 동일했다.
 
 ### 요구사항 4 - redirect 방식으로 이동
 * 
